@@ -2,14 +2,17 @@
 using System.Collections;
 
 public class CreateBoard : MonoBehaviour {
-    private ArrayList cubes = new ArrayList();
-    private const int BOARD_SIZE = 4;
+    public ArrayList cubes = new ArrayList();
+    public const int BOARD_SIZE = 4;
     private Transform temp;
     private Color WOOD = new Color(0.51f,0.32f,0);
     private Vector3 pieceScale = new Vector3(0.6f, 0.1f, 0.6f);
+    public GameObject[,] board;
+    public int test = 5;
 
 	// Use this for initialization
 	void Start () {
+        board = new GameObject[BOARD_SIZE,BOARD_SIZE];
         createPieces();
         foreach (Transform child in transform)
         {
@@ -39,6 +42,15 @@ public class CreateBoard : MonoBehaviour {
 
     void createPieces()
     {
+        for (int i = 0; i < BOARD_SIZE; i++)
+        {
+            for (int j = 0; j < BOARD_SIZE; j++)
+            {
+                board[i, j] = null;
+            }
+        }
+
+
         GameObject[] playerA = new GameObject[2];
         GameObject[] playerB = new GameObject[2];
         Vector3 positionA = new Vector3(0, 0.3f, 0);
@@ -57,9 +69,11 @@ public class CreateBoard : MonoBehaviour {
 
             playerB[i].transform.position = positionB;
             playerB[i].transform.localScale = pieceScale;
-            playerB[i].GetComponent<MeshRenderer>().material.color = Color.red;
+            playerB[i].GetComponent<MeshRenderer>().material.color = Color.blue;
             playerB[i].tag = "Player B";
 
+            board[(int)positionA.x, (int)positionA.z] = playerA[i];
+            board[(int)positionB.x, (int)positionB.z] = playerB[i];
             positionA.z += 2;
             positionB.z += 2;
         }
