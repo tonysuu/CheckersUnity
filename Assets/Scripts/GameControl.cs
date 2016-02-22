@@ -23,8 +23,9 @@ public class GameControl : MonoBehaviour {
         state = State.IDLE;
         activePlayer = PLAYER_A;
         board = gameObject.GetComponent<CreateBoard>();
-        Transform temp = (Transform)board.cubes[1];
-        temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+        
+        //Transform temp = (Transform)board.cubes[1];
+        //temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
         //printBoard(board.board);
     }
 	
@@ -42,7 +43,7 @@ public class GameControl : MonoBehaviour {
                         {
                             if (hitInfo.collider.gameObject.CompareTag("Player A"))
                             {
-                                pieceSelect(hitInfo.collider.gameObject);
+                                pieceSelect(hitInfo.collider.gameObject,true);
                                 showOptions();
                                 state = State.PIECE_SELECTED;
                             }
@@ -52,7 +53,7 @@ public class GameControl : MonoBehaviour {
                         {
                             if (hitInfo.collider.gameObject.CompareTag("Player B"))
                             {
-                                pieceSelect(hitInfo.collider.gameObject);
+                                pieceSelect(hitInfo.collider.gameObject,true);
                                 showOptions();
                                 state = State.PIECE_SELECTED;
                             }
@@ -72,13 +73,13 @@ public class GameControl : MonoBehaviour {
                             {
                                 if (isSelected(hitInfo.collider.gameObject))
                                 {
-                                    pieceDeselect(hitInfo.collider.gameObject);
+                                    pieceSelect(hitInfo.collider.gameObject,false);
                                     state = State.IDLE;
                                 }
                                 else
                                 {
-                                    pieceDeselect(curSelected);
-                                    pieceSelect(hitInfo.collider.gameObject);
+                                    pieceSelect(curSelected,false);
+                                    pieceSelect(hitInfo.collider.gameObject,true);
                                 }
                             }
                             if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -86,7 +87,7 @@ public class GameControl : MonoBehaviour {
                                 if (isValidMove(hitInfo.collider.gameObject))
                                 {
                                     movePiece(hitInfo.collider.gameObject);
-                                    pieceDeselect(curSelected);
+                                    pieceSelect(curSelected,false);
                                     state = State.END_TURN;
                                 }
                             }
@@ -97,13 +98,13 @@ public class GameControl : MonoBehaviour {
                             {
                                 if (isSelected(hitInfo.collider.gameObject))
                                 {
-                                    pieceDeselect(hitInfo.collider.gameObject);
+                                    pieceSelect(hitInfo.collider.gameObject,false);
                                     state = State.IDLE;
                                 }
                                 else
                                 {
-                                    pieceDeselect(curSelected);
-                                    pieceSelect(hitInfo.collider.gameObject);
+                                    pieceSelect(curSelected,false);
+                                    pieceSelect(hitInfo.collider.gameObject,true);
                                 }
                             }
                             if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -111,7 +112,7 @@ public class GameControl : MonoBehaviour {
                                 if (isValidMove(hitInfo.collider.gameObject))
                                 {
                                     movePiece(hitInfo.collider.gameObject);
-                                    pieceDeselect(curSelected);
+                                    pieceSelect(curSelected,false);
                                     state = State.END_TURN;
                                 }
                             }
@@ -133,31 +134,32 @@ public class GameControl : MonoBehaviour {
         
 	}
 
-    void pieceSelect(GameObject selected)
+    void pieceSelect(GameObject selected, bool select)
     {
         MeshRenderer renderer = selected.GetComponent<MeshRenderer>();
         Color color = renderer.material.GetColor("_Color");
-        color.a = 0.4f;
-    
-        renderer.material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-        renderer.material.SetFloat("_Mode", 2);
-        renderer.material.SetColor("_Color", color);
-        curSelected = selected;
+        if (select)
+        {
+            color.a = 0.4f;
+
+            renderer.material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            renderer.material.SetFloat("_Mode", 2);
+            renderer.material.SetColor("_Color", color);
+            curSelected = selected;
+        }
+        else
+        {
+            color.a = 1;
+
+            renderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            renderer.material.SetFloat("_Mode", 0);
+            renderer.material.SetColor("_Color", color);
+            curSelected = null;
+        }
     }
     bool isValidMove(GameObject dest)
     {
         return true;
-    }
-    void pieceDeselect(GameObject selected)
-    {
-        MeshRenderer renderer = selected.GetComponent<MeshRenderer>();
-        Color color = renderer.material.GetColor("_Color");
-        color.a = 1;
-
-        renderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        renderer.material.SetFloat("_Mode", 0);
-        renderer.material.SetColor("_Color", color);
-        curSelected = null;
     }
     bool isSelected(GameObject piece)
     {
