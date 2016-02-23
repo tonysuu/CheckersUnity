@@ -57,6 +57,7 @@ public class GameControl : MonoBehaviour {
                             {
                                 pieceSelect(hitInfo.collider.gameObject,true);
                                 state = State.PIECE_SELECTED;
+                                showOptions();
                             }
                         }
                     }
@@ -81,6 +82,8 @@ public class GameControl : MonoBehaviour {
                                 {
                                     pieceSelect(curSelected,false);
                                     pieceSelect(hitInfo.collider.gameObject,true);
+                                    restoreBoard();
+                                    showOptions();
                                 }
                             }
                             if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -106,6 +109,8 @@ public class GameControl : MonoBehaviour {
                                 {
                                     pieceSelect(curSelected,false);
                                     pieceSelect(hitInfo.collider.gameObject,true);
+                                    restoreBoard();
+                                    showOptions();
                                 }
                             }
                             if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -183,6 +188,9 @@ public class GameControl : MonoBehaviour {
     {
         Vector3 destination = dest.transform.position;
         Vector3 start = curSelected.transform.position;
+        board.board[(int)destination.x, (int)destination.z] = curSelected;
+        board.board[(int)start.x, (int)start.z] = null;
+
         start.x = destination.x;
         start.z = destination.z;
         curSelected.transform.position = start;
@@ -211,31 +219,112 @@ public class GameControl : MonoBehaviour {
             if (curSelected.CompareTag("Player A"))
             {
                 //left and down
-                if (x+1 <= 3 && z-1 >= 0)
+                if (x+1 < BOARD_SIZE && z-1 >= 0)
                 {
+                    //regular move
                     if (board.board[x+1,z-1] == null)
                     {
-                        Transform temp = (Transform)board.cubes[(x + 1) * 4 + z - 1];
-                        Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * 4 + z - 1);
+                        Transform temp = (Transform)board.cubes[(x + 1) * BOARD_SIZE + z - 1];
+                        Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * BOARD_SIZE + z - 1);
                         queue.Enqueue(opt);
                         temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
                         //board.cubes[(x + 1) * 4 + z - 1] = temp;
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
+                    //kill
                     else if (board.board[x+1,z-1].CompareTag("Player B"))
                     {
-                        if (x + 2 <= 3 && z-2 >= 0 && board.board[x+2,z-2] == null)
+                        if (x + 2 <= BOARD_SIZE && z-2 >= 0 && board.board[x+2,z-2] == null)
                         {
-                            //Transform temp = (Transform)board.cubes[(x + 2) * 4 + z - 2];
+                            Transform temp = (Transform)board.cubes[(x + 2) * BOARD_SIZE + z - 2];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 2) * BOARD_SIZE + z - 2);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
                             //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                         }
                     }
                 }
-                //right and down     
+                //right and down
+                if (x + 1 < BOARD_SIZE && z + 1 < BOARD_SIZE)
+                {
+                    //regular move
+                    if (board.board[x + 1, z + 1] == null)
+                    {
+                        Transform temp = (Transform)board.cubes[(x + 1) * BOARD_SIZE + z + 1];
+                        Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * BOARD_SIZE + z + 1);
+                        queue.Enqueue(opt);
+                        temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                        //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                        //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                    }
+                    //kill
+                    else if (board.board[x + 1, z + 1].CompareTag("Player B"))
+                    {
+                        if (x + 2 <= BOARD_SIZE && z + 2 >= 0 && board.board[x + 2, z + 2] == null)
+                        {
+                            Transform temp = (Transform)board.cubes[(x + 2) * BOARD_SIZE + z + 2];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 2) * BOARD_SIZE + z + 2);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                    }
+                }
             }
             else if (curSelected.CompareTag("Player B"))
             {
-
+                //left and up
+                if (x - 1 >= 0 && z - 1 >= 0)
+                {
+                    //regular move
+                    if (board.board[x - 1, z - 1] == null)
+                    {
+                        Transform temp = (Transform)board.cubes[(x - 1) * BOARD_SIZE + z - 1];
+                        Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 1) * BOARD_SIZE + z - 1);
+                        queue.Enqueue(opt);
+                        temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                        //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                        //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                    }
+                    //kill
+                    else if (board.board[x - 1, z - 1].CompareTag("Player A"))
+                    {
+                        if (x - 2 >= 0 && z - 2 >= 0 && board.board[x - 2, z - 2] == null)
+                        {
+                            Transform temp = (Transform)board.cubes[(x - 2) * BOARD_SIZE + z - 2];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 2) * BOARD_SIZE + z - 2);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                    }
+                }
+                //right and up
+                if (x - 1 >= 0 && z + 1 < BOARD_SIZE)
+                {
+                    //regular move
+                    if (board.board[x - 1, z + 1] == null)
+                    {
+                        Transform temp = (Transform)board.cubes[(x - 1) * BOARD_SIZE + z + 1];
+                        Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 1) * BOARD_SIZE + z + 1);
+                        queue.Enqueue(opt);
+                        temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                        //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                        //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                    }
+                    //kill
+                    else if (board.board[x - 1, z + 1].CompareTag("Player A"))
+                    {
+                        if (x - 2 <= BOARD_SIZE && z + 2 >= 0 && board.board[x - 2, z + 2] == null)
+                        {
+                            Transform temp = (Transform)board.cubes[(x - 2) * BOARD_SIZE + z + 2];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 2) * BOARD_SIZE + z + 2);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                    }
+                }
             }
         }
     }

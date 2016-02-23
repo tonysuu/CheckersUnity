@@ -23,7 +23,7 @@ public class CreateBoard : MonoBehaviour {
         {
             for (int j = 0; j < BOARD_SIZE; j++)
             {
-                temp = (Transform)cubes[i * 4 + j];
+                temp = (Transform)cubes[i * BOARD_SIZE + j];
                 if ((i + j) % 2 == 0)
                 {
                     temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.black; //= (Material)materials[BLACK];
