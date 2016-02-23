@@ -2,9 +2,11 @@
 using System.Collections;
 
 public class GameControl : MonoBehaviour {
+    Queue queue = new Queue();
     private const int PLAYER_A = 0;
     private const int PLAYER_B = 1;
     private int activePlayer;
+    private bool show;
     private enum State
     {
         IDLE, PIECE_SELECTED, END_TURN
@@ -23,9 +25,8 @@ public class GameControl : MonoBehaviour {
         state = State.IDLE;
         activePlayer = PLAYER_A;
         board = gameObject.GetComponent<CreateBoard>();
+        show = false;
         
-        //Transform temp = (Transform)board.cubes[1];
-        //temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
         //printBoard(board.board);
     }
 	
@@ -34,6 +35,7 @@ public class GameControl : MonoBehaviour {
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         switch (state){
             case State.IDLE:
+                restoreBoard();
                 if (Input.GetMouseButtonDown(0))
                 {
                     ray = camera.ScreenPointToRay(Input.mousePosition);
@@ -44,8 +46,8 @@ public class GameControl : MonoBehaviour {
                             if (hitInfo.collider.gameObject.CompareTag("Player A"))
                             {
                                 pieceSelect(hitInfo.collider.gameObject,true);
-                                showOptions();
                                 state = State.PIECE_SELECTED;
+                                showOptions();
                             }
                    
                         }
@@ -54,7 +56,6 @@ public class GameControl : MonoBehaviour {
                             if (hitInfo.collider.gameObject.CompareTag("Player B"))
                             {
                                 pieceSelect(hitInfo.collider.gameObject,true);
-                                showOptions();
                                 state = State.PIECE_SELECTED;
                             }
                         }
@@ -122,6 +123,7 @@ public class GameControl : MonoBehaviour {
                 break;
             case State.END_TURN:
                 curSelected = null;
+                show = false;
                 state = State.IDLE;
                 if (activePlayer == PLAYER_A)
                     activePlayer = PLAYER_B;
@@ -137,26 +139,38 @@ public class GameControl : MonoBehaviour {
     void pieceSelect(GameObject selected, bool select)
     {
         MeshRenderer renderer = selected.GetComponent<MeshRenderer>();
-        Color color = renderer.material.GetColor("_Color");
         if (select)
         {
-            color.a = 0.4f;
-
-            renderer.material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-            renderer.material.SetFloat("_Mode", 2);
-            renderer.material.SetColor("_Color", color);
+            setTransparent(renderer, select);
             curSelected = selected;
         }
         else
         {
-            color.a = 1;
-
-            renderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            renderer.material.SetFloat("_Mode", 0);
-            renderer.material.SetColor("_Color", color);
+            setTransparent(renderer, select);
             curSelected = null;
         }
     }
+    void setTransparent(MeshRenderer renderer, bool transparent)
+    {
+        Color color = renderer.material.GetColor("_Color");
+        
+        if (transparent)
+        {
+            color.a = 0.4f;
+            renderer.material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            renderer.material.SetFloat("_Mode", 3);
+            renderer.material.SetColor("_Color", color);
+        }
+        else
+        {
+            color.a = 1;
+            renderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            renderer.material.SetFloat("_Mode", 0);
+            renderer.material.SetColor("_Color", color);
+        }
+
+    }
+
     bool isValidMove(GameObject dest)
     {
         return true;
@@ -201,18 +215,58 @@ public class GameControl : MonoBehaviour {
                 {
                     if (board.board[x+1,z-1] == null)
                     {
-
+                        Transform temp = (Transform)board.cubes[(x + 1) * 4 + z - 1];
+                        Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * 4 + z - 1);
+                        queue.Enqueue(opt);
+                        temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                        //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                        //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     else if (board.board[x+1,z-1].CompareTag("Player B"))
                     {
-
+                        if (x + 2 <= 3 && z-2 >= 0 && board.board[x+2,z-2] == null)
+                        {
+                            //Transform temp = (Transform)board.cubes[(x + 2) * 4 + z - 2];
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
                     }
-                }     
+                }
+                //right and down     
             }
-            else
+            else if (curSelected.CompareTag("Player B"))
             {
 
             }
         }
+    }
+    void restoreBoard()
+    {
+        //print("funciton called");
+        while (queue.Count != 0)
+        {
+            print("count "+queue.Count);
+            Option opt = (Option)queue.Dequeue();
+            print(opt.getIndex() + " " + opt.getColor());
+            Transform temp = (Transform)board.cubes[opt.getIndex()];
+            temp.gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", opt.getColor());
+            board.cubes[opt.getIndex()] = temp;
+        }
+    }
+}
+public class Option
+{
+    Color color;
+    int index;
+    public Option(Color color, int index)
+    {
+        this.color = color;
+        this.index = index;
+    }
+    public Color getColor()
+    {
+        return color;
+    }
+    public int getIndex(){
+        return index;
     }
 }
