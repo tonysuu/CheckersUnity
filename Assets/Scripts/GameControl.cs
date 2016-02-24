@@ -178,7 +178,9 @@ public class GameControl : MonoBehaviour {
 
     bool isValidMove(GameObject dest)
     {
-        return true;
+        Option toMove = new Option(dest.GetComponent<MeshRenderer>().material.GetColor("_Color"),
+            ((int)dest.transform.position.x) * 4 + (int)dest.transform.position.z);
+        return queue.Contains(toMove);
     }
     bool isSelected(GameObject piece)
     {
@@ -315,7 +317,7 @@ public class GameControl : MonoBehaviour {
                     //kill
                     else if (board.board[x - 1, z + 1].CompareTag("Player A"))
                     {
-                        if (x - 2 <= BOARD_SIZE && z + 2 >= 0 && board.board[x - 2, z + 2] == null)
+                        if (x - 2 >= 0 && z + 2 < BOARD_SIZE && board.board[x - 2, z + 2] == null)
                         {
                             Transform temp = (Transform)board.cubes[(x - 2) * BOARD_SIZE + z + 2];
                             Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 2) * BOARD_SIZE + z + 2);
@@ -333,9 +335,9 @@ public class GameControl : MonoBehaviour {
         //print("funciton called");
         while (queue.Count != 0)
         {
-            print("count "+queue.Count);
+            //print("count "+queue.Count);
             Option opt = (Option)queue.Dequeue();
-            print(opt.getIndex() + " " + opt.getColor());
+            //print(opt.getIndex() + " " + opt.getColor());
             Transform temp = (Transform)board.cubes[opt.getIndex()];
             temp.gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", opt.getColor());
             board.cubes[opt.getIndex()] = temp;
@@ -357,5 +359,18 @@ public class Option
     }
     public int getIndex(){
         return index;
+    }
+    public override bool Equals(System.Object other)
+    {
+        if (other == null)
+        {
+            return true;
+        }
+        Option that = other as Option;
+        return (index == that.getIndex());
+    }
+    public override string ToString()
+    {
+        return "Cube at "+index.ToString();
     }
 }
