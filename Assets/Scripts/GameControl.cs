@@ -190,9 +190,15 @@ public class GameControl : MonoBehaviour {
     {
         Vector3 destination = dest.transform.position;
         Vector3 start = curSelected.transform.position;
+        if (destination.x - start.x == 2 || destination.x - start.x == -2)
+        {
+            float x = (destination.x + start.x) / 2;
+            float z = (destination.z + start.z) / 2;
+            board.board[(int)x, (int)z].SetActive(false);
+            board.board[(int)x, (int)z] = null;
+        }
         board.board[(int)destination.x, (int)destination.z] = curSelected;
         board.board[(int)start.x, (int)start.z] = null;
-
         start.x = destination.x;
         start.z = destination.z;
         curSelected.transform.position = start;
