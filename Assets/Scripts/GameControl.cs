@@ -8,10 +8,17 @@ public class GameControl : MonoBehaviour {
     private int activePlayer;
     private bool swithchPlayer;
     private bool jump;
+
     private enum State
     {
-        IDLE, PIECE_SELECTED, END_TURN
+        IDLE, PIECE_SELECTED, END_TURN, END_OF_GAME
     };
+
+    private enum Show
+    {
+        NORMAL, KILL, KING
+    }
+
     private State state;
     Ray ray;
     RaycastHit hitInfo;
@@ -19,7 +26,7 @@ public class GameControl : MonoBehaviour {
     Color temp;
     GameObject curSelected;
     private CreateBoard board;
-    private const int BOARD_SIZE = 4;
+    private const int BOARD_SIZE = 6;
 
 	// Use this for initialization
 	void Start () {
@@ -48,7 +55,7 @@ public class GameControl : MonoBehaviour {
                             {
                                 pieceSelect(hitInfo.collider.gameObject,true);
                                 state = State.PIECE_SELECTED;
-                                showOptions();
+                                showOptions(Show.NORMAL);
                             }
                    
                         }
@@ -58,7 +65,7 @@ public class GameControl : MonoBehaviour {
                             {
                                 pieceSelect(hitInfo.collider.gameObject,true);
                                 state = State.PIECE_SELECTED;
-                                showOptions();
+                                showOptions(Show.NORMAL);
                             }
                         }
                     }
@@ -84,7 +91,7 @@ public class GameControl : MonoBehaviour {
                                     pieceSelect(curSelected,false);
                                     pieceSelect(hitInfo.collider.gameObject,true);
                                     restoreBoard();
-                                    showOptions();
+                                    showOptions(Show.NORMAL);
                                 }
                             }
                             if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -97,7 +104,12 @@ public class GameControl : MonoBehaviour {
                                         jump = false;
                                         state = State.PIECE_SELECTED;
                                         restoreBoard();
-                                        showOptions();
+                                        showOptions(Show.KILL);
+                                        if (queue.Count == 0)
+                                        {
+                                            pieceSelect(curSelected, false);
+                                            state = State.END_TURN;
+                                        }
                                     }
                                     else
                                     {
@@ -121,7 +133,7 @@ public class GameControl : MonoBehaviour {
                                     pieceSelect(curSelected,false);
                                     pieceSelect(hitInfo.collider.gameObject,true);
                                     restoreBoard();
-                                    showOptions();
+                                    showOptions(Show.NORMAL);
                                 }
                             }
                             if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -134,7 +146,12 @@ public class GameControl : MonoBehaviour {
                                         jump = false;
                                         state = State.PIECE_SELECTED;
                                         restoreBoard();
-                                        showOptions();
+                                        showOptions(Show.KILL);
+                                        if (queue.Count == 0)
+                                        {
+                                            pieceSelect(curSelected, false);
+                                            state = State.END_TURN;
+                                        }
                                     }
                                     else
                                     {
@@ -151,10 +168,13 @@ public class GameControl : MonoBehaviour {
                 curSelected = null;
                 swithchPlayer = true;
                 state = State.IDLE;
+                checkWinner();
                 if (activePlayer == PLAYER_A)
                     activePlayer = PLAYER_B;
                 else
                     activePlayer = PLAYER_A;
+                break;
+            case State.END_OF_GAME:
                 break;
             default:
                 break;
@@ -198,9 +218,9 @@ public class GameControl : MonoBehaviour {
     }
 
     bool isValidMove(GameObject dest)
-    {
+    { 
         Option toMove = new Option(dest.GetComponent<MeshRenderer>().material.GetColor("_Color"),
-            ((int)dest.transform.position.x) * 4 + (int)dest.transform.position.z);
+            ((int)dest.transform.position.x) * BOARD_SIZE + (int)dest.transform.position.z);
         return queue.Contains(toMove);
     }
     bool isSelected(GameObject piece)
@@ -240,7 +260,7 @@ public class GameControl : MonoBehaviour {
             print("\n");
         }
     }
-    void showOptions()
+    void showOptions(Show mode)
     {
         int x, z;
         if (curSelected != null)
@@ -250,10 +270,10 @@ public class GameControl : MonoBehaviour {
             if (curSelected.CompareTag("Player A"))
             {
                 //left and down
-                if (x+1 < BOARD_SIZE && z-1 >= 0)
+                if (x + 1 < BOARD_SIZE && z - 1 >= 0)
                 {
                     //regular move
-                    if (board.board[x+1,z-1] == null)
+                    if (board.board[x + 1, z - 1] == null && (mode == Show.NORMAL || mode == Show.KING))
                     {
                         Transform temp = (Transform)board.cubes[(x + 1) * BOARD_SIZE + z - 1];
                         Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * BOARD_SIZE + z - 1);
@@ -263,7 +283,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x+1,z-1].CompareTag("Player B"))
+                    else if (board.board[x + 1, z - 1] != null && board.board[x+1,z-1].CompareTag("Player B"))
                     {
                         if (x + 2 < BOARD_SIZE && z-2 >= 0 && board.board[x+2,z-2] == null)
                         {
@@ -279,7 +299,7 @@ public class GameControl : MonoBehaviour {
                 if (x + 1 < BOARD_SIZE && z + 1 < BOARD_SIZE)
                 {
                     //regular move
-                    if (board.board[x + 1, z + 1] == null)
+                    if (board.board[x + 1, z + 1] == null && (mode == Show.NORMAL || mode == Show.KING))
                     {
                         Transform temp = (Transform)board.cubes[(x + 1) * BOARD_SIZE + z + 1];
                         Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * BOARD_SIZE + z + 1);
@@ -289,7 +309,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x + 1, z + 1].CompareTag("Player B"))
+                    else if (board.board[x + 1, z + 1] != null && board.board[x + 1, z + 1].CompareTag("Player B"))
                     {
                         if (x + 2 < BOARD_SIZE && z + 2 < BOARD_SIZE && board.board[x + 2, z + 2] == null)
                         {
@@ -308,7 +328,7 @@ public class GameControl : MonoBehaviour {
                 if (x - 1 >= 0 && z - 1 >= 0)
                 {
                     //regular move
-                    if (board.board[x - 1, z - 1] == null)
+                    if (board.board[x - 1, z - 1] == null && (mode == Show.NORMAL || mode == Show.KING))
                     {
                         Transform temp = (Transform)board.cubes[(x - 1) * BOARD_SIZE + z - 1];
                         Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 1) * BOARD_SIZE + z - 1);
@@ -318,7 +338,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x - 1, z - 1].CompareTag("Player A"))
+                    else if (board.board[x - 1, z - 1] != null && board.board[x - 1, z - 1].CompareTag("Player A"))
                     {
                         if (x - 2 >= 0 && z - 2 >= 0 && board.board[x - 2, z - 2] == null)
                         {
@@ -334,7 +354,7 @@ public class GameControl : MonoBehaviour {
                 if (x - 1 >= 0 && z + 1 < BOARD_SIZE)
                 {
                     //regular move
-                    if (board.board[x - 1, z + 1] == null)
+                    if (board.board[x - 1, z + 1] == null && (mode == Show.NORMAL || mode == Show.KING))
                     {
                         Transform temp = (Transform)board.cubes[(x - 1) * BOARD_SIZE + z + 1];
                         Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 1) * BOARD_SIZE + z + 1);
@@ -344,7 +364,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x - 1, z + 1].CompareTag("Player A"))
+                    else if (board.board[x - 1, z + 1] != null && board.board[x - 1, z + 1].CompareTag("Player A"))
                     {
                         if (x - 2 >= 0 && z + 2 < BOARD_SIZE && board.board[x - 2, z + 2] == null)
                         {
@@ -361,16 +381,48 @@ public class GameControl : MonoBehaviour {
     }
     void restoreBoard()
     {
-        //print("funciton called");
         while (queue.Count != 0)
         {
-            //print("count "+queue.Count);
             Option opt = (Option)queue.Dequeue();
-            //print(opt.getIndex() + " " + opt.getColor());
             Transform temp = (Transform)board.cubes[opt.getIndex()];
             temp.gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", opt.getColor());
             board.cubes[opt.getIndex()] = temp;
         }
+    }
+    void checkWinner(){
+        int playerA = 0;
+        int playerB = 0;
+        for (int i = 0; i < BOARD_SIZE; i++)
+        {
+            for (int j = 0; j < BOARD_SIZE; j++)
+            {
+                if (board.board[i, j] != null)
+                {
+                    if (board.board[i, j].CompareTag("Player A"))
+                    {
+                        playerA++;
+                    }
+                    else if (board.board[i, j].CompareTag("Player B"))
+                    {
+                        playerB++;
+                    }
+                }
+            }
+        }
+        if (playerA == 0)
+        {
+            displayText("Player B won");
+            state = State.END_OF_GAME;
+        }
+        if (playerB == 0)
+        {
+            displayText("Player A won");
+            state = State.END_OF_GAME;
+        }
+    }
+    void displayText(string text)
+    {
+        //GameObject 
     }
 }
 public class Option
