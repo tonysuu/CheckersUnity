@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 
 public class GameControl : MonoBehaviour {
@@ -8,6 +9,13 @@ public class GameControl : MonoBehaviour {
     private int activePlayer;
     private bool swithchPlayer;
     private bool jump;
+    private bool rotating;
+    private long startTicks;
+
+    private Vector3 cameraPosition = new Vector3(-1, 5, BOARD_SIZE/2);
+    private Vector3 cameraRotation = new Vector3(60, 90, 0);
+    private Vector3 point = new Vector3(BOARD_SIZE / 2, 0, BOARD_SIZE / 2);
+
 
     private enum State
     {
@@ -35,151 +43,176 @@ public class GameControl : MonoBehaviour {
         board = gameObject.GetComponent<CreateBoard>();
         jump = false;
         swithchPlayer = true;
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        camera.transform.position = cameraPosition;
+        camera.transform.Rotate(cameraRotation);
+        rotating = false;
         //printBoard(board.board);
     }
 	
 	// Ulayerdate is called once per frame
 	void Update () {
-        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        switch (state){
-            case State.IDLE:
-                restoreBoard();
-                if (Input.GetMouseButtonDown(0))
-                {
-                    ray = camera.ScreenPointToRay(Input.mousePosition);
-                    if (Physics.Raycast(ray, out hitInfo))
+        if (!rotating)
+        {
+            switch (state)
+            {
+                case State.IDLE:
+                    if (Input.GetMouseButtonDown(0))
                     {
-                        if (activePlayer == PLAYER_A)
+                        ray = camera.ScreenPointToRay(Input.mousePosition);
+                        if (Physics.Raycast(ray, out hitInfo))
                         {
-                            if (hitInfo.collider.gameObject.CompareTag("Player A"))
+                            if (activePlayer == PLAYER_A)
                             {
-                                pieceSelect(hitInfo.collider.gameObject,true);
-                                state = State.PIECE_SELECTED;
-                                showOptions(Show.NORMAL);
-                            }
-                   
-                        }
-                        else
-                        {
-                            if (hitInfo.collider.gameObject.CompareTag("Player B"))
-                            {
-                                pieceSelect(hitInfo.collider.gameObject,true);
-                                state = State.PIECE_SELECTED;
-                                showOptions(Show.NORMAL);
-                            }
-                        }
-                    }
-                }
-                break;
-            case State.PIECE_SELECTED:
-                if (Input.GetMouseButtonDown(0))
-                {
-                    ray = camera.ScreenPointToRay(Input.mousePosition);
-                    if (Physics.Raycast(ray, out hitInfo))
-                    {
-                        if (activePlayer == PLAYER_A)
-                        {
-                            if (hitInfo.collider.gameObject.CompareTag("Player A"))
-                            {
-                                if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
+                                if (hitInfo.collider.gameObject.CompareTag("Player A"))
                                 {
-                                    pieceSelect(hitInfo.collider.gameObject,false);
-                                    state = State.IDLE;
+                                    pieceSelect(hitInfo.collider.gameObject, true);
+                                    state = State.PIECE_SELECTED;
+                                    showOptions(Show.NORMAL);
                                 }
-                                else if (swithchPlayer)
+
+                            }
+                            else
+                            {
+                                if (hitInfo.collider.gameObject.CompareTag("Player B"))
                                 {
-                                    pieceSelect(curSelected,false);
-                                    pieceSelect(hitInfo.collider.gameObject,true);
-                                    restoreBoard();
+                                    pieceSelect(hitInfo.collider.gameObject, true);
+                                    state = State.PIECE_SELECTED;
                                     showOptions(Show.NORMAL);
                                 }
                             }
-                            if (hitInfo.collider.gameObject.CompareTag("Cube"))
+                        }
+                    }
+                    break;
+                case State.PIECE_SELECTED:
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        ray = camera.ScreenPointToRay(Input.mousePosition);
+                        if (Physics.Raycast(ray, out hitInfo))
+                        {
+                            if (activePlayer == PLAYER_A)
                             {
-                                if (isValidMove(hitInfo.collider.gameObject))
+                                if (hitInfo.collider.gameObject.CompareTag("Player A"))
                                 {
-                                    movePiece(hitInfo.collider.gameObject);
-                                    if (jump)
+                                    if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
                                     {
-                                        jump = false;
-                                        state = State.PIECE_SELECTED;
+                                        pieceSelect(hitInfo.collider.gameObject, false);
+                                        state = State.IDLE;
+                                    }
+                                    else if (swithchPlayer)
+                                    {
+                                        pieceSelect(curSelected, false);
+                                        pieceSelect(hitInfo.collider.gameObject, true);
                                         restoreBoard();
-                                        showOptions(Show.KILL);
-                                        if (queue.Count == 0)
+                                        showOptions(Show.NORMAL);
+                                    }
+                                }
+                                if (hitInfo.collider.gameObject.CompareTag("Cube"))
+                                {
+                                    if (isValidMove(hitInfo.collider.gameObject))
+                                    {
+                                        movePiece(hitInfo.collider.gameObject);
+                                        if (jump)
+                                        {
+                                            jump = false;
+                                            state = State.PIECE_SELECTED;
+                                            restoreBoard();
+                                            showOptions(Show.KILL);
+                                            if (queue.Count == 0)
+                                            {
+                                                pieceSelect(curSelected, false);
+                                                state = State.END_TURN;
+                                            }
+                                        }
+                                        else
                                         {
                                             pieceSelect(curSelected, false);
                                             state = State.END_TURN;
                                         }
                                     }
-                                    else
+                                }
+                            }
+                            else
+                            {
+                                if (hitInfo.collider.gameObject.CompareTag("Player B"))
+                                {
+                                    if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
+                                    {
+                                        pieceSelect(hitInfo.collider.gameObject, false);
+                                        state = State.IDLE;
+                                    }
+                                    else if (swithchPlayer)
                                     {
                                         pieceSelect(curSelected, false);
-                                        state = State.END_TURN;
+                                        pieceSelect(hitInfo.collider.gameObject, true);
+                                        restoreBoard();
+                                        showOptions(Show.NORMAL);
                                     }
                                 }
-                            }
-                        }
-                        else 
-                        {
-                            if (hitInfo.collider.gameObject.CompareTag("Player B"))
-                            {
-                                if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
+                                if (hitInfo.collider.gameObject.CompareTag("Cube"))
                                 {
-                                    pieceSelect(hitInfo.collider.gameObject,false);
-                                    state = State.IDLE;
-                                }
-                                else if (swithchPlayer)
-                                {
-                                    pieceSelect(curSelected,false);
-                                    pieceSelect(hitInfo.collider.gameObject,true);
-                                    restoreBoard();
-                                    showOptions(Show.NORMAL);
-                                }
-                            }
-                            if (hitInfo.collider.gameObject.CompareTag("Cube"))
-                            {
-                                if (isValidMove(hitInfo.collider.gameObject))
-                                {
-                                    movePiece(hitInfo.collider.gameObject);
-                                    if (jump)
+                                    if (isValidMove(hitInfo.collider.gameObject))
                                     {
-                                        jump = false;
-                                        state = State.PIECE_SELECTED;
-                                        restoreBoard();
-                                        showOptions(Show.KILL);
-                                        if (queue.Count == 0)
+                                        movePiece(hitInfo.collider.gameObject);
+                                        if (jump)
+                                        {
+                                            jump = false;
+                                            state = State.PIECE_SELECTED;
+                                            restoreBoard();
+                                            showOptions(Show.KILL);
+                                            if (queue.Count == 0)
+                                            {
+                                                pieceSelect(curSelected, false);
+                                                state = State.END_TURN;
+                                            }
+                                        }
+                                        else
                                         {
                                             pieceSelect(curSelected, false);
                                             state = State.END_TURN;
                                         }
                                     }
-                                    else
-                                    {
-                                        pieceSelect(curSelected, false);
-                                        state = State.END_TURN;
-                                    }
                                 }
                             }
                         }
                     }
-                }
-                break;
-            case State.END_TURN:
-                curSelected = null;
-                swithchPlayer = true;
-                state = State.IDLE;
-                checkWinner();
-                if (activePlayer == PLAYER_A)
-                    activePlayer = PLAYER_B;
-                else
-                    activePlayer = PLAYER_A;
-                break;
-            case State.END_OF_GAME:
-                break;
-            default:
-                break;
+                    break;
+                case State.END_TURN:
+                    curSelected = null;
+                    swithchPlayer = true;
+                    state = State.IDLE;
+                    restoreBoard();
+                    checkWinner();
+
+                    if (activePlayer == PLAYER_A)
+                    {
+                        activePlayer = PLAYER_B;
+                        rotating = true;
+                    }
+                    else
+                    {
+                        activePlayer = PLAYER_A;
+                        rotating = true;
+                    }
+                    break;
+                case State.END_OF_GAME:
+                    break;
+                default:
+                    break;
+            }
         }
-        
+        else
+        {
+            camera.transform.RotateAround(point, Vector3.up, Time.deltaTime * 80);
+            if (Math.Abs(7 - camera.transform.position.x) < 0.00005)
+            {
+                rotating = false;
+            }
+            if (Math.Abs(-1 - camera.transform.position.x) < 0.00005)
+            {
+                rotating = false;
+            }
+        }
 	}
 
     void pieceSelect(GameObject selected, bool select)
@@ -411,18 +444,32 @@ public class GameControl : MonoBehaviour {
         }
         if (playerA == 0)
         {
-            displayText("Player B won");
+            board.displayText("Player B won");
             state = State.END_OF_GAME;
         }
         if (playerB == 0)
         {
-            displayText("Player A won");
+            board.displayText("Player A won");
             state = State.END_OF_GAME;
         }
     }
-    void displayText(string text)
+    void rotate()
     {
-        //GameObject 
+        /*rotating = true;
+        DateTime startTime = DateTime.Now;
+        float travelTime = 2; //2 seconds
+        float degree = 180 / (travelTime * 10000000); //degree/tick
+        long elapsedTicks = 0;
+        while (elapsedTicks < travelTime * 10000000)
+        {
+            camera.transform.RotateAround(point, Vector3.up, degree);
+            elapsedTicks = DateTime.Now.Ticks - startTime.Ticks;
+        }
+        rotating = false;
+        /*Vector3 position = camera.transform.position;
+        position.x--;
+        position.z--;
+        camera.transform.position = position;*/
     }
 }
 public class Option

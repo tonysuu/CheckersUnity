@@ -9,6 +9,8 @@ public class CreateBoard : MonoBehaviour {
     private Color WOOD = new Color(0.51f,0.32f,0);
     private Vector3 pieceScale = new Vector3(0.6f, 0.1f, 0.6f);
     public GameObject[,] board;
+    public GameObject text;
+
 
 	// Use this for initialization
 	void Start () {
@@ -31,6 +33,8 @@ public class CreateBoard : MonoBehaviour {
                 temp.gameObject.GetComponent<MeshRenderer>().material.color = WOOD;
             }
         }
+        text = GameObject.Find("WinText");
+        text.SetActive(false);
 	}
 
     void Update()
@@ -95,5 +99,10 @@ public class CreateBoard : MonoBehaviour {
         {
             print(cube[i]);
         }
+    }
+    public void displayText(string toDisplay)
+    {
+        text.SetActive(true);
+        text.GetComponent<TextMesh>().text = toDisplay;
     }
 }
