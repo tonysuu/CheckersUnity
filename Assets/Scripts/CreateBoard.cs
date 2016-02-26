@@ -3,12 +3,12 @@ using System.Collections;
 
 public class CreateBoard : MonoBehaviour {
     public ArrayList cubes = new ArrayList();
-    public const int BOARD_SIZE = 4;
+    public const int BOARD_SIZE = 6;
+    const int NUM_PLAYERS = 2;
     private Transform temp;
     private Color WOOD = new Color(0.51f,0.32f,0);
     private Vector3 pieceScale = new Vector3(0.6f, 0.1f, 0.6f);
     public GameObject[,] board;
-    public int test = 5;
 
 	// Use this for initialization
 	void Start () {
@@ -19,19 +19,16 @@ public class CreateBoard : MonoBehaviour {
             cubes.Add(child);
             child.gameObject.tag = "Cube";
         }
-        for (int i = 0; i < BOARD_SIZE; i++)
+        for (int i = 0; i < BOARD_SIZE*BOARD_SIZE; i++)
         {
-            for (int j = 0; j < BOARD_SIZE; j++)
+            temp = (Transform)cubes[i];
+            if (((int)temp.position.x + (int)temp.position.z) % 2 == 0)
             {
-                temp = (Transform)cubes[i * BOARD_SIZE + j];
-                if ((i + j) % 2 == 0)
-                {
-                    temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.black; //= (Material)materials[BLACK];
-                }
-                else
-                {
-                    temp.gameObject.GetComponent<MeshRenderer>().material.color = WOOD; //= (Material)materials[WOOD];
-                }
+                temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.black;
+            }
+            else
+            {
+                temp.gameObject.GetComponent<MeshRenderer>().material.color = WOOD;
             }
         }
 	}
@@ -51,13 +48,13 @@ public class CreateBoard : MonoBehaviour {
         }
 
 
-        GameObject[] playerA = new GameObject[2];
-        GameObject[] playerB = new GameObject[2];
-        Vector3 positionA = new Vector3(0, 0.3f, 0);
-        Vector3 positionB = new Vector3(3, 0.3f, 1);
+        GameObject[] playerA = new GameObject[NUM_PLAYERS];
+        GameObject[] playerB = new GameObject[NUM_PLAYERS];
+        Vector3 positionA = new Vector3(0, 0.3f, 1);
+        Vector3 positionB = new Vector3(5, 0.3f, 2);
 
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < NUM_PLAYERS; i++)
         {
             playerA[i] = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             playerB[i] = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -76,6 +73,27 @@ public class CreateBoard : MonoBehaviour {
             board[(int)positionB.x, (int)positionB.z] = playerB[i];
             positionA.z += 2;
             positionB.z += 2;
+        }
+    }
+    public class SortByIndex : IComparer
+    {
+        int IComparer.Compare(object x, object y)
+        {
+            Transform a = x as Transform;
+            Transform b = y as Transform;
+            float indexA = a.position.x * BOARD_SIZE + a.position.z;
+            float indexB = b.position.x * BOARD_SIZE + b.position.z;
+            if (indexA > indexB)
+                return 1;
+            else
+                return 0;
+        }
+    }
+    public void printCube(ArrayList cube)
+    {
+        for (int i = 0; i < cube.Count; i++)
+        {
+            print(cube[i]);
         }
     }
 }
