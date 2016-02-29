@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEditor;
 
 public class CreateBoard : MonoBehaviour {
     public ArrayList cubes = new ArrayList();
@@ -34,6 +35,10 @@ public class CreateBoard : MonoBehaviour {
             }
         }
         text = GameObject.Find("WinText");
+        text.transform.position = new Vector3(2, 1, -0.5f);
+        text.transform.Rotate(new Vector3(25, 270, 0));
+        text.GetComponent<TextMesh>().characterSize = 0.1f;
+        text.GetComponent<TextMesh>().fontSize = 100;
         text.SetActive(false);
 	}
 
@@ -104,5 +109,17 @@ public class CreateBoard : MonoBehaviour {
     {
         text.SetActive(true);
         text.GetComponent<TextMesh>().text = toDisplay;
+        if (EditorUtility.DisplayDialog("GAME OVER", "Rematch?", "YES", "NO"))
+        {
+            reset();
+        }
+        else
+        {
+            Application.Quit();
+        }
+    }
+    void reset()
+    {
+        print("game reset");
     }
 }

@@ -10,7 +10,8 @@ public class GameControl : MonoBehaviour {
     private bool swithchPlayer;
     private bool jump;
     private bool rotating;
-    private long startTicks;
+    private double rotation;
+    private double toTarget;
 
     private Vector3 cameraPosition = new Vector3(-1, 5, BOARD_SIZE/2);
     private Vector3 cameraRotation = new Vector3(60, 90, 0);
@@ -47,6 +48,8 @@ public class GameControl : MonoBehaviour {
         camera.transform.position = cameraPosition;
         camera.transform.Rotate(cameraRotation);
         rotating = false;
+        rotation = 0;
+        toTarget = 0;
         //printBoard(board.board);
     }
 	
@@ -97,6 +100,7 @@ public class GameControl : MonoBehaviour {
                                     if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
                                     {
                                         pieceSelect(hitInfo.collider.gameObject, false);
+                                        restoreBoard();
                                         state = State.IDLE;
                                     }
                                     else if (swithchPlayer)
@@ -139,6 +143,7 @@ public class GameControl : MonoBehaviour {
                                     if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
                                     {
                                         pieceSelect(hitInfo.collider.gameObject, false);
+                                        restoreBoard();
                                         state = State.IDLE;
                                     }
                                     else if (swithchPlayer)
@@ -184,15 +189,16 @@ public class GameControl : MonoBehaviour {
                     restoreBoard();
                     checkWinner();
 
+                    //disable rotating camera
                     if (activePlayer == PLAYER_A)
                     {
                         activePlayer = PLAYER_B;
-                        rotating = true;
+                        //rotating = true;
                     }
                     else
                     {
                         activePlayer = PLAYER_A;
-                        rotating = true;
+                        //rotating = true;
                     }
                     break;
                 case State.END_OF_GAME:
@@ -203,14 +209,13 @@ public class GameControl : MonoBehaviour {
         }
         else
         {
-            camera.transform.RotateAround(point, Vector3.up, Time.deltaTime * 80);
-            if (Math.Abs(7 - camera.transform.position.x) < 0.00005)
+            camera.transform.RotateAround(point, Vector3.up, Time.deltaTime * 150);
+            rotation += Time.deltaTime * 150;
+            if (rotation >= 180 + toTarget)
             {
+                toTarget = 180 - rotation;
                 rotating = false;
-            }
-            if (Math.Abs(-1 - camera.transform.position.x) < 0.00005)
-            {
-                rotating = false;
+                rotation = 0;
             }
         }
 	}
