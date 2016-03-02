@@ -133,9 +133,8 @@ public class GameControl : MonoBehaviour {
                                         }
                                         else
                                         {
-                                            //pieceSelect(curSelected, false);
+                                            pieceSelect(curSelected, false);
                                             state = State.END_TURN;
-                                            print("current selected: "+curSelected);
                                         }
                                     }
                                 }
@@ -177,7 +176,7 @@ public class GameControl : MonoBehaviour {
                                         }
                                         else
                                         {
-                                            //pieceSelect(curSelected, false);
+                                            pieceSelect(curSelected, false);
                                             state = State.END_TURN;
                                         }
                                     }
@@ -187,7 +186,6 @@ public class GameControl : MonoBehaviour {
                     }
                     break;
                 case State.END_TURN:
-                    print("********");
                     curSelected = null;
                     swithchPlayer = true;
                     state = State.IDLE;
@@ -222,10 +220,9 @@ public class GameControl : MonoBehaviour {
                 rotating = false;
                 rotation = 0;
             }*/
-            curSelected.transform.position = Vector3.MoveTowards(start, destination, Time.deltaTime * 100);
-            print(curSelected.transform.position);
-            print(start);
-            print(destination);
+            curSelected.transform.position = Vector3.MoveTowards(curSelected.transform.position,destination,Time.deltaTime * 3);
+            if (curSelected.transform.position == destination)
+                moving = false;
         }
 	}
 
@@ -289,6 +286,8 @@ public class GameControl : MonoBehaviour {
         }
         board.board[(int)destination.x, (int)destination.z] = curSelected;
         board.board[(int)start.x, (int)start.z] = null;
+
+        destination.y = start.y;
         moving = true;
         /*start.x = destination.x;
         start.z = destination.z;
