@@ -12,6 +12,9 @@ public class GameControl : MonoBehaviour {
     private bool rotating;
     private double rotation;
     private double toTarget;
+    private bool moving;
+    private Vector3 start;
+    private Vector3 destination;
 
     private Vector3 cameraPosition = new Vector3(-1, 5, BOARD_SIZE/2);
     private Vector3 cameraRotation = new Vector3(60, 90, 0);
@@ -55,7 +58,7 @@ public class GameControl : MonoBehaviour {
 	
 	// Ulayerdate is called once per frame
 	void Update () {
-        if (!rotating)
+        if (!rotating  && !moving)
         {
             switch (state)
             {
@@ -130,8 +133,9 @@ public class GameControl : MonoBehaviour {
                                         }
                                         else
                                         {
-                                            pieceSelect(curSelected, false);
+                                            //pieceSelect(curSelected, false);
                                             state = State.END_TURN;
+                                            print("current selected: "+curSelected);
                                         }
                                     }
                                 }
@@ -173,7 +177,7 @@ public class GameControl : MonoBehaviour {
                                         }
                                         else
                                         {
-                                            pieceSelect(curSelected, false);
+                                            //pieceSelect(curSelected, false);
                                             state = State.END_TURN;
                                         }
                                     }
@@ -183,6 +187,7 @@ public class GameControl : MonoBehaviour {
                     }
                     break;
                 case State.END_TURN:
+                    print("********");
                     curSelected = null;
                     swithchPlayer = true;
                     state = State.IDLE;
@@ -209,14 +214,18 @@ public class GameControl : MonoBehaviour {
         }
         else
         {
-            camera.transform.RotateAround(point, Vector3.up, Time.deltaTime * 150);
+            /*camera.transform.RotateAround(point, Vector3.up, Time.deltaTime * 150);
             rotation += Time.deltaTime * 150;
             if (rotation >= 180 + toTarget)
             {
                 toTarget = 180 - rotation;
                 rotating = false;
                 rotation = 0;
-            }
+            }*/
+            curSelected.transform.position = Vector3.MoveTowards(start, destination, Time.deltaTime * 100);
+            print(curSelected.transform.position);
+            print(start);
+            print(destination);
         }
 	}
 
@@ -231,7 +240,7 @@ public class GameControl : MonoBehaviour {
         else
         {
             setTransparent(renderer, select);
-            curSelected = null;
+            //curSelected = null;
         }
     }
     void setTransparent(MeshRenderer renderer, bool transparent)
@@ -267,8 +276,8 @@ public class GameControl : MonoBehaviour {
     }
     void movePiece(GameObject dest)
     {
-        Vector3 destination = dest.transform.position;
-        Vector3 start = curSelected.transform.position;
+        destination = dest.transform.position;
+        start = curSelected.transform.position;
         if (destination.x - start.x == 2 || destination.x - start.x == -2)
         {
             float x = (destination.x + start.x) / 2;
@@ -280,9 +289,10 @@ public class GameControl : MonoBehaviour {
         }
         board.board[(int)destination.x, (int)destination.z] = curSelected;
         board.board[(int)start.x, (int)start.z] = null;
-        start.x = destination.x;
+        moving = true;
+        /*start.x = destination.x;
         start.z = destination.z;
-        curSelected.transform.position = start;
+        curSelected.transform.position = start;*/
     }
     void printBoard(GameObject[,] board)
     {

@@ -11,10 +11,12 @@ public class CreateBoard : MonoBehaviour {
     private Vector3 pieceScale = new Vector3(0.6f, 0.1f, 0.6f);
     public GameObject[,] board;
     public GameObject text;
+    GameObject[] playerA;
+    GameObject[] playerB;
 
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         board = new GameObject[BOARD_SIZE,BOARD_SIZE];
         createPieces();
         foreach (Transform child in transform)
@@ -44,6 +46,7 @@ public class CreateBoard : MonoBehaviour {
 
     void Update()
     {
+        //playerA[0].transform.position = Vector3.MoveTowards(playerA[0].transform.position, new Vector3(5, 0.3f, 5), Time.deltaTime * 2);
     }
 
     void createPieces()
@@ -57,8 +60,8 @@ public class CreateBoard : MonoBehaviour {
         }
 
 
-        GameObject[] playerA = new GameObject[NUM_PLAYERS];
-        GameObject[] playerB = new GameObject[NUM_PLAYERS];
+        playerA = new GameObject[NUM_PLAYERS];
+        playerB = new GameObject[NUM_PLAYERS];
         Vector3 positionA = new Vector3(0, 0.3f, 1);
         Vector3 positionB = new Vector3(5, 0.3f, 2);
 
