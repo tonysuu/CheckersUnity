@@ -47,7 +47,7 @@ public class CreateBoard : MonoBehaviour {
 
     void Update()
     {
-        displayText("Player A Won");
+        //displayText("Player A Won");
         //playerA[0].transform.position = Vector3.MoveTowards(playerA[0].transform.position, new Vector3(5, 0.3f, 5), Time.deltaTime * 2);
     }
 

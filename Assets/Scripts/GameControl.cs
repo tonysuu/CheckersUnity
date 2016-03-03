@@ -70,21 +70,27 @@ public class GameControl : MonoBehaviour {
                         {
                             if (activePlayer == PLAYER_A)
                             {
-                                if (hitInfo.collider.gameObject.CompareTag("Player A"))
+                                if (hitInfo.collider.gameObject.CompareTag("Player A") || hitInfo.collider.gameObject.CompareTag("King A"))
                                 {
                                     pieceSelect(hitInfo.collider.gameObject, true);
                                     state = State.PIECE_SELECTED;
-                                    showOptions(Show.NORMAL);
+                                    if (hitInfo.collider.gameObject.CompareTag("King A"))
+                                        showOptions(Show.KING);
+                                    else
+                                        showOptions(Show.NORMAL);
                                 }
 
                             }
                             else
                             {
-                                if (hitInfo.collider.gameObject.CompareTag("Player B"))
+                                if (hitInfo.collider.gameObject.CompareTag("Player B") | hitInfo.collider.gameObject.CompareTag("King B"))
                                 {
                                     pieceSelect(hitInfo.collider.gameObject, true);
                                     state = State.PIECE_SELECTED;
-                                    showOptions(Show.NORMAL);
+                                    if (hitInfo.collider.gameObject.CompareTag("King B"))
+                                        showOptions(Show.KING);
+                                    else
+                                        showOptions(Show.NORMAL);
                                 }
                             }
                         }
@@ -98,7 +104,7 @@ public class GameControl : MonoBehaviour {
                         {
                             if (activePlayer == PLAYER_A)
                             {
-                                if (hitInfo.collider.gameObject.CompareTag("Player A"))
+                                if (hitInfo.collider.gameObject.CompareTag("Player A") || hitInfo.collider.gameObject.CompareTag("King A"))
                                 {
                                     if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
                                     {
@@ -111,7 +117,10 @@ public class GameControl : MonoBehaviour {
                                         pieceSelect(curSelected, false);
                                         pieceSelect(hitInfo.collider.gameObject, true);
                                         restoreBoard();
-                                        showOptions(Show.NORMAL);
+                                        if (hitInfo.collider.gameObject.CompareTag("King A"))
+                                            showOptions(Show.KING);
+                                        else
+                                            showOptions(Show.NORMAL);
                                     }
                                 }
                                 if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -141,7 +150,7 @@ public class GameControl : MonoBehaviour {
                             }
                             else
                             {
-                                if (hitInfo.collider.gameObject.CompareTag("Player B"))
+                                if (hitInfo.collider.gameObject.CompareTag("Player B") || hitInfo.collider.gameObject.CompareTag("King B"))
                                 {
                                     if (isSelected(hitInfo.collider.gameObject) && swithchPlayer)
                                     {
@@ -154,7 +163,10 @@ public class GameControl : MonoBehaviour {
                                         pieceSelect(curSelected, false);
                                         pieceSelect(hitInfo.collider.gameObject, true);
                                         restoreBoard();
-                                        showOptions(Show.NORMAL);
+                                        if (hitInfo.collider.gameObject.CompareTag("King B"))
+                                            showOptions(Show.KING);
+                                        else
+                                            showOptions(Show.NORMAL);
                                     }
                                 }
                                 if (hitInfo.collider.gameObject.CompareTag("Cube"))
@@ -275,6 +287,8 @@ public class GameControl : MonoBehaviour {
     {
         destination = dest.transform.position;
         start = curSelected.transform.position;
+
+        //check for kill
         if (destination.x - start.x == 2 || destination.x - start.x == -2)
         {
             float x = (destination.x + start.x) / 2;
@@ -284,6 +298,17 @@ public class GameControl : MonoBehaviour {
             jump = true;
             swithchPlayer = false;
         }
+        //check for king condition
+        if (destination.x == 5 && curSelected.CompareTag("Player A"))
+        {
+            curSelected.tag = "King A";
+        }
+        if (destination.x == 0 && curSelected.CompareTag("Player B"))
+        {
+            curSelected.tag = "King B";
+        }
+
+
         board.board[(int)destination.x, (int)destination.z] = curSelected;
         board.board[(int)start.x, (int)start.z] = null;
 
@@ -314,7 +339,7 @@ public class GameControl : MonoBehaviour {
         {
             x = (int)curSelected.transform.position.x;
             z = (int)curSelected.transform.position.z;
-            if (curSelected.CompareTag("Player A"))
+            if (curSelected.CompareTag("Player A") || curSelected.CompareTag("King A"))
             {
                 //left and down
                 if (x + 1 < BOARD_SIZE && z - 1 >= 0)
@@ -330,7 +355,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x + 1, z - 1] != null && board.board[x+1,z-1].CompareTag("Player B"))
+                    else if (board.board[x + 1, z - 1] != null && (board.board[x+1,z-1].CompareTag("Player B") || board.board[x + 1, z - 1].CompareTag("King B")))
                     {
                         if (x + 2 < BOARD_SIZE && z-2 >= 0 && board.board[x+2,z-2] == null)
                         {
@@ -356,7 +381,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x + 1, z + 1] != null && board.board[x + 1, z + 1].CompareTag("Player B"))
+                    else if (board.board[x + 1, z + 1] != null && (board.board[x + 1, z + 1].CompareTag("Player B") || board.board[x + 1, z + 1].CompareTag("King B")))
                     {
                         if (x + 2 < BOARD_SIZE && z + 2 < BOARD_SIZE && board.board[x + 2, z + 2] == null)
                         {
@@ -368,8 +393,63 @@ public class GameControl : MonoBehaviour {
                         }
                     }
                 }
+                if (curSelected.CompareTag("King A"))
+                {
+                    //left and up
+                    if (x - 1 >= 0 && z - 1 >= 0)
+                    {
+                        //regular move
+                        if (board.board[x - 1, z - 1] == null && (mode == Show.NORMAL || mode == Show.KING))
+                        {
+                            Transform temp = (Transform)board.cubes[(x - 1) * BOARD_SIZE + z - 1];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 1) * BOARD_SIZE + z - 1);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                        //kill
+                        else if (board.board[x - 1, z - 1] != null && (board.board[x - 1, z - 1].CompareTag("Player B") || board.board[x - 1, z - 1].CompareTag("King B")))
+                        {
+                            if (x - 2 >= 0 && z - 2 >= 0 && board.board[x - 2, z - 2] == null)
+                            {
+                                Transform temp = (Transform)board.cubes[(x - 2) * BOARD_SIZE + z - 2];
+                                Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 2) * BOARD_SIZE + z - 2);
+                                queue.Enqueue(opt);
+                                temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                                //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                            }
+                        }
+                    }
+                    //right and up
+                    if (x - 1 >= 0 && z + 1 < BOARD_SIZE)
+                    {
+                        //regular move
+                        if (board.board[x - 1, z + 1] == null && (mode == Show.NORMAL || mode == Show.KING))
+                        {
+                            Transform temp = (Transform)board.cubes[(x - 1) * BOARD_SIZE + z + 1];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 1) * BOARD_SIZE + z + 1);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                        //kill
+                        else if (board.board[x - 1, z + 1] != null && (board.board[x - 1, z + 1].CompareTag("Player B") || board.board[x - 1, z + 1].CompareTag("King B")))
+                        {
+                            if (x - 2 >= 0 && z + 2 < BOARD_SIZE && board.board[x - 2, z + 2] == null)
+                            {
+                                Transform temp = (Transform)board.cubes[(x - 2) * BOARD_SIZE + z + 2];
+                                Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x - 2) * BOARD_SIZE + z + 2);
+                                queue.Enqueue(opt);
+                                temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                                //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                            }
+                        }
+                    }
+                }
             }
-            else if (curSelected.CompareTag("Player B"))
+            else if (curSelected.CompareTag("Player B") || curSelected.CompareTag("King B"))
             {
                 //left and up
                 if (x - 1 >= 0 && z - 1 >= 0)
@@ -385,7 +465,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x - 1, z - 1] != null && board.board[x - 1, z - 1].CompareTag("Player A"))
+                    else if (board.board[x - 1, z - 1] != null && (board.board[x - 1, z - 1].CompareTag("Player A") || board.board[x - 1, z - 1].CompareTag("King A")))
                     {
                         if (x - 2 >= 0 && z - 2 >= 0 && board.board[x - 2, z - 2] == null)
                         {
@@ -411,7 +491,7 @@ public class GameControl : MonoBehaviour {
                         //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
                     }
                     //kill
-                    else if (board.board[x - 1, z + 1] != null && board.board[x - 1, z + 1].CompareTag("Player A"))
+                    else if (board.board[x - 1, z + 1] != null && (board.board[x - 1, z + 1].CompareTag("Player A") || board.board[x - 1, z + 1].CompareTag("King A")))
                     {
                         if (x - 2 >= 0 && z + 2 < BOARD_SIZE && board.board[x - 2, z + 2] == null)
                         {
@@ -420,6 +500,61 @@ public class GameControl : MonoBehaviour {
                             queue.Enqueue(opt);
                             temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
                             //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                    }
+                }
+                if (curSelected.CompareTag("King B"))
+                {
+                    //left and down
+                    if (x + 1 < BOARD_SIZE && z - 1 >= 0)
+                    {
+                        //regular move
+                        if (board.board[x + 1, z - 1] == null && (mode == Show.NORMAL || mode == Show.KING))
+                        {
+                            Transform temp = (Transform)board.cubes[(x + 1) * BOARD_SIZE + z - 1];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * BOARD_SIZE + z - 1);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                        //kill
+                        else if (board.board[x + 1, z - 1] != null && (board.board[x + 1, z - 1].CompareTag("Player A") || board.board[x + 1, z - 1].CompareTag("King A")))
+                        {
+                            if (x + 2 < BOARD_SIZE && z - 2 >= 0 && board.board[x + 2, z - 2] == null)
+                            {
+                                Transform temp = (Transform)board.cubes[(x + 2) * BOARD_SIZE + z - 2];
+                                Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 2) * BOARD_SIZE + z - 2);
+                                queue.Enqueue(opt);
+                                temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                                //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                            }
+                        }
+                    }
+                    //right and down
+                    if (x + 1 < BOARD_SIZE && z + 1 < BOARD_SIZE)
+                    {
+                        //regular move
+                        if (board.board[x + 1, z + 1] == null && (mode == Show.NORMAL || mode == Show.KING))
+                        {
+                            Transform temp = (Transform)board.cubes[(x + 1) * BOARD_SIZE + z + 1];
+                            Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 1) * BOARD_SIZE + z + 1);
+                            queue.Enqueue(opt);
+                            temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                            //board.cubes[(x + 1) * 4 + z - 1] = temp;
+                            //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                        }
+                        //kill
+                        else if (board.board[x + 1, z + 1] != null && (board.board[x + 1, z + 1].CompareTag("Player A") || board.board[x + 1, z + 1].CompareTag("King A")))
+                        {
+                            if (x + 2 < BOARD_SIZE && z + 2 < BOARD_SIZE && board.board[x + 2, z + 2] == null)
+                            {
+                                Transform temp = (Transform)board.cubes[(x + 2) * BOARD_SIZE + z + 2];
+                                Option opt = new Option(temp.gameObject.GetComponent<MeshRenderer>().material.GetColor("_Color"), (x + 2) * BOARD_SIZE + z + 2);
+                                queue.Enqueue(opt);
+                                temp.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
+                                //setTransparent(temp.gameObject.GetComponent<MeshRenderer>(), true);
+                            }
                         }
                     }
                 }
@@ -445,11 +580,11 @@ public class GameControl : MonoBehaviour {
             {
                 if (board.board[i, j] != null)
                 {
-                    if (board.board[i, j].CompareTag("Player A"))
+                    if (board.board[i, j].CompareTag("Player A") || board.board[i, j].CompareTag("King A"))
                     {
                         playerA++;
                     }
-                    else if (board.board[i, j].CompareTag("Player B"))
+                    else if (board.board[i, j].CompareTag("Player B") || board.board[i, j].CompareTag("King B"))
                     {
                         playerB++;
                     }
