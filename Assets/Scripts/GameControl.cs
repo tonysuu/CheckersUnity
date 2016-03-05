@@ -128,12 +128,14 @@ public class GameControl : MonoBehaviour {
                                     if (isValidMove(hitInfo.collider.gameObject))
                                     {
                                         movePiece(hitInfo.collider.gameObject);
-                                        if (jump)
+                                        /*if (jump)
                                         {
                                             jump = false;
                                             state = State.PIECE_SELECTED;
                                             restoreBoard();
+                                            print(curSelected.transform.position);
                                             showOptions(Show.KILL);
+                                            print(queue.Count);
                                             if (queue.Count == 0)
                                             {
                                                 pieceSelect(curSelected, false);
@@ -141,10 +143,10 @@ public class GameControl : MonoBehaviour {
                                             }
                                         }
                                         else
-                                        {
-                                            pieceSelect(curSelected, false);
-                                            state = State.END_TURN;
-                                        }
+                                        {*/
+                                        pieceSelect(curSelected, false);
+                                        state = State.END_TURN;
+                                        //}
                                     }
                                 }
                             }
@@ -174,12 +176,13 @@ public class GameControl : MonoBehaviour {
                                     if (isValidMove(hitInfo.collider.gameObject))
                                     {
                                         movePiece(hitInfo.collider.gameObject);
-                                        if (jump)
+                                        /*if (jump)
                                         {
                                             jump = false;
                                             state = State.PIECE_SELECTED;
                                             restoreBoard();
                                             showOptions(Show.KILL);
+                                            print(queue.Count);
                                             if (queue.Count == 0)
                                             {
                                                 pieceSelect(curSelected, false);
@@ -187,10 +190,10 @@ public class GameControl : MonoBehaviour {
                                             }
                                         }
                                         else
-                                        {
-                                            pieceSelect(curSelected, false);
-                                            state = State.END_TURN;
-                                        }
+                                        {*/
+                                        pieceSelect(curSelected, false);
+                                        state = State.END_TURN;
+                                        //}
                                     }
                                 }
                             }
@@ -198,22 +201,39 @@ public class GameControl : MonoBehaviour {
                     }
                     break;
                 case State.END_TURN:
-                    curSelected = null;
-                    swithchPlayer = true;
-                    state = State.IDLE;
-                    restoreBoard();
-                    checkWinner();
-
-                    //disable rotating camera
-                    if (activePlayer == PLAYER_A)
+                    if (jump)
                     {
-                        activePlayer = PLAYER_B;
-                        //rotating = true;
+                        jump = false;
+                        state = State.PIECE_SELECTED;
+                        restoreBoard();
+                        print(curSelected.transform.position);
+                        showOptions(Show.KILL);
+                        print(queue.Count);
+                        if (queue.Count == 0)
+                        {
+                            pieceSelect(curSelected, false);
+                            state = State.END_TURN;
+                        }
                     }
                     else
                     {
-                        activePlayer = PLAYER_A;
-                        //rotating = true;
+                        curSelected = null;
+                        swithchPlayer = true;
+                        state = State.IDLE;
+                        restoreBoard();
+                        checkWinner();
+
+                        //disable rotating camera
+                        if (activePlayer == PLAYER_A)
+                        {
+                            activePlayer = PLAYER_B;
+                            //rotating = true;
+                        }
+                        else
+                        {
+                            activePlayer = PLAYER_A;
+                            //rotating = true;
+                        }
                     }
                     break;
                 case State.END_OF_GAME:
@@ -232,7 +252,7 @@ public class GameControl : MonoBehaviour {
                 rotating = false;
                 rotation = 0;
             }*/
-            curSelected.transform.position = Vector3.MoveTowards(curSelected.transform.position,destination,Time.deltaTime * 3);
+            curSelected.transform.position = Vector3.MoveTowards(curSelected.transform.position,destination,Time.deltaTime * 4);
             if (curSelected.transform.position == destination)
                 moving = false;
         }
@@ -261,6 +281,13 @@ public class GameControl : MonoBehaviour {
             color.a = 0.4f;
             renderer.material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
             renderer.material.SetFloat("_Mode", 3);
+            /*renderer.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+            renderer.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            renderer.material.SetInt("_ZWrite", 0);
+            renderer.material.DisableKeyword("_ALPHATEST_ON");
+            renderer.material.DisableKeyword("_ALPHABLEND_ON");
+            renderer.material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            renderer.material.renderQueue = 3000;*/
             renderer.material.SetColor("_Color", color);
         }
         else
@@ -593,12 +620,12 @@ public class GameControl : MonoBehaviour {
         }
         if (playerA == 0)
         {
-            board.displayText("Player B won");
+            board.displayText("PLAYER B WON");
             state = State.END_OF_GAME;
         }
         if (playerB == 0)
         {
-            board.displayText("Player A won");
+            board.displayText("PLAYER A WON");
             state = State.END_OF_GAME;
         }
     }

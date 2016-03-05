@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEditor;
 
 public class CreateBoard : MonoBehaviour {
     public ArrayList cubes = new ArrayList();
@@ -14,6 +13,9 @@ public class CreateBoard : MonoBehaviour {
     GameObject[] playerA;
     GameObject[] playerB;
 
+    public Texture2D cursorTexture;
+    bool showDialog;
+    string winText;
 
     // Use this for initialization
     void Start () {
@@ -43,10 +45,14 @@ public class CreateBoard : MonoBehaviour {
         text.GetComponent<TextMesh>().characterSize = 0.1f;
         text.GetComponent<TextMesh>().fontSize = 100;
         text.SetActive(false);
+        Invoke("setCursor", 0);
+        showDialog = false;
+
 	}
 
     void Update()
     {
+        //showDialog = true;
         //displayText("Player A Won");
         //playerA[0].transform.position = Vector3.MoveTowards(playerA[0].transform.position, new Vector3(5, 0.3f, 5), Time.deltaTime * 2);
     }
@@ -112,8 +118,10 @@ public class CreateBoard : MonoBehaviour {
     }
     public void displayText(string toDisplay)
     {
-        text.SetActive(true);
-        text.GetComponent<TextMesh>().text = toDisplay;
+        showDialog = true;
+        winText = toDisplay;
+        //text.SetActive(true);
+        //text.GetComponent<TextMesh>().text = toDisplay;
         /*if (EditorUtility.DisplayDialog("GAME OVER", "Rematch?", "YES", "NO"))
         {
             reset();
@@ -123,8 +131,38 @@ public class CreateBoard : MonoBehaviour {
             Application.Quit();
         }*/
     }
-    void reset()
+    public void OnGUI()
     {
-        print("game reset");
+        if (showDialog)
+            showQuit();
+    }
+
+    private void showQuit()
+    {
+        GUIStyle boxText = new GUIStyle(GUI.skin.box);
+        boxText.fontSize = 50;
+        GUIStyle labelText = new GUIStyle(GUI.skin.label);
+        labelText.fontSize = 20;    
+
+        GUI.BeginGroup(new Rect((Screen.width - 400) / 2, (Screen.height - 300) / 2, 400, 300));
+        GUI.Box(new Rect(0, 0, 400, 200), "Game Over", boxText);
+        GUI.Box(new Rect((400-230)/2 + 50,70, 230, 30), winText, labelText);
+        if (GUI.Button(new Rect((400 - 230) / 2, 200 / 2 + 40, 100, 30), "Rematch?"))
+        {
+            reset();
+        }
+        if (GUI.Button(new Rect((400 - 230) / 2 + 130, 200 / 2 + 40, 100, 30), "Quit"))
+        {
+            Application.Quit();
+        }
+        GUI.EndGroup();
+    }
+    private void setCursor()
+    {
+        Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
+    }
+    private void reset()
+    {
+        Application.LoadLevel(0);
     }
 }
